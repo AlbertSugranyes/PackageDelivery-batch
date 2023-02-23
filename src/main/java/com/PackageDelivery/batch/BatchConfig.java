@@ -45,10 +45,15 @@ public class BatchConfig {
     }
     @Bean
     public Step driveToAddressStep(){
+
+        boolean gotLost = false;
         return new StepBuilder("driveToAddress",jobRepository)
                 .tasklet(new Tasklet() {
                     @Override
                     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
+                        if (gotLost){
+                            throw new RuntimeException("Got lost driving to the address");
+                        }
                         System.out.println("Successfully arrived to the address");
                         return RepeatStatus.FINISHED;
                     }
