@@ -45,7 +45,7 @@ public class BatchConfig {
     }
     @Bean
     public Step driveToAddressStep(){
-        return new StepBuilder("driveToAddress")
+        return new StepBuilder("driveToAddress",jobRepository)
                 .tasklet(new Tasklet() {
                     @Override
                     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
@@ -57,7 +57,7 @@ public class BatchConfig {
     }
     @Bean
     public Step givePackageToCustomerStep(){
-        return new StepBuilder("givePackageToCustomer")
+        return new StepBuilder("givePackageToCustomer",jobRepository)
                 .tasklet(new Tasklet() {
                     @Override
                     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
