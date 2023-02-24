@@ -49,7 +49,7 @@ public class BatchConfig {
     @Bean
     public Step driveToAddressStep(){
 
-        boolean gotLost = true;
+        boolean gotLost = false; // Set gotLost boolean value to specify whether the driver got lost or not.
         return new StepBuilder("driveToAddress",jobRepository)
                 .tasklet(new Tasklet() {
                     @Override
