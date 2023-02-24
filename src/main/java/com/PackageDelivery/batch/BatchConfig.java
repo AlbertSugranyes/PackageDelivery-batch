@@ -22,7 +22,7 @@ public class BatchConfig {
     private PlatformTransactionManager transactionManager;
     @Bean
     public Job packageDeliveryJob(){
-        return new JobBuilder("packageDeliveyJob",jobRepository)
+        return new JobBuilder("packageDeliveryJob",jobRepository)
                 .start(packageItemStep())
                 .next(driveToAddressStep())
                     .on("FAILED").to(storePackageStep())
