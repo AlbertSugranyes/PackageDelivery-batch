@@ -4,6 +4,7 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.job.flow.JobExecutionDecider;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.builder.StepBuilder;
@@ -27,7 +28,10 @@ public class BatchConfig {
                 .next(driveToAddressStep())
                     .on("FAILED").to(storePackageStep())
                 .from(driveToAddressStep())
-                    .on("*").to(givePackageToCustomerStep())
+                    .on("*").to(decider())
+                        .on("PRESENT").to(givePackageToCustomerStep())
+                    .from(decider())
+                        .on("NOT PRESENT").to(leaveAtDoorStep())
                 .end()
                 .build();
     }
@@ -64,12 +68,28 @@ public class BatchConfig {
                 .build();
     }
     @Bean
+    public JobExecutionDecider decider() {
+        return new DeliveryDecider();
+    }
+    @Bean
     public Step storePackageStep(){
         return new StepBuilder("storePackageStep",jobRepository)
                 .tasklet(new Tasklet() {
                     @Override
                     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
                         System.out.println("Storing the package while the customer address is located");
+                        return RepeatStatus.FINISHED;
+                    }
+                },transactionManager)
+                .build();
+    }
+    @Bean
+    public Step leaveAtDoorStep(){
+        return new StepBuilder("leaveAtDoorStep",jobRepository)
+                .tasklet(new Tasklet() {
+                    @Override
+                    public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
+                        System.out.println("Leaving the package at the door");
                         return RepeatStatus.FINISHED;
                     }
                 },transactionManager)
