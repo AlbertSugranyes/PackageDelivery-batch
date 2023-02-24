@@ -25,7 +25,10 @@ public class BatchConfig {
         return new JobBuilder("packageDeliveyJob",jobRepository)
                 .start(packageItemStep())
                 .next(driveToAddressStep())
-                .next(givePackageToCustomerStep())
+                    .on("FAILED").to(storePackageStep())
+                .from(driveToAddressStep())
+                    .on("*").to(givePackageToCustomerStep())
+                .end()
                 .build();
     }
     @Bean
@@ -46,7 +49,7 @@ public class BatchConfig {
     @Bean
     public Step driveToAddressStep(){
 
-        boolean gotLost = false;
+        boolean gotLost = true;
         return new StepBuilder("driveToAddress",jobRepository)
                 .tasklet(new Tasklet() {
                     @Override
@@ -55,6 +58,18 @@ public class BatchConfig {
                             throw new RuntimeException("Got lost driving to the address");
                         }
                         System.out.println("Successfully arrived to the address");
+                        return RepeatStatus.FINISHED;
+                    }
+                },transactionManager)
+                .build();
+    }
+    @Bean
+    public Step storePackageStep(){
+        return new StepBuilder("givePackageToCustomer",jobRepository)
+                .tasklet(new Tasklet() {
+                    @Override
+                    public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
+                        System.out.println("Storing the package while the customer address is located");
                         return RepeatStatus.FINISHED;
                     }
                 },transactionManager)
