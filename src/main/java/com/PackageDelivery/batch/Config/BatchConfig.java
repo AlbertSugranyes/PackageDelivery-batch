@@ -1,5 +1,7 @@
-package com.PackageDelivery.batch;
+package com.PackageDelivery.batch.Config;
 
+import com.PackageDelivery.batch.Decider.DeliveryDecider;
+import com.PackageDelivery.batch.Decider.ItemDecider;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepContribution;
@@ -30,6 +32,10 @@ public class BatchConfig {
                 .from(driveToAddressStep())
                     .on("*").to(decider())
                         .on("PRESENT").to(givePackageToCustomerStep())
+                            .next(itemDecider())
+                                .on("CORRECT").to(thankCustomerStep())
+                            .from(itemDecider())
+                                .on("INCORRECT").to(refundCustomerStep())
                     .from(decider())
                         .on("NOT PRESENT").to(leaveAtDoorStep())
                 .end()
@@ -105,6 +111,32 @@ public class BatchConfig {
                         return RepeatStatus.FINISHED;
                     }
                 },transactionManager)
+                .build();
+    }
+    @Bean
+    public ItemDecider itemDecider(){ return new ItemDecider(); }
+    @Bean
+    public Step thankCustomerStep(){
+        return new StepBuilder("thankCustomerStep",jobRepository)
+                .tasklet(new Tasklet() {
+                    @Override
+                    public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
+                        System.out.println("Customer has been thanked");
+                        return RepeatStatus.FINISHED;
+                    }
+                }, transactionManager)
+                .build();
+    }
+    @Bean
+    public Step refundCustomerStep(){
+        return new StepBuilder("refundCustomerStep",jobRepository)
+                .tasklet(new Tasklet() {
+                    @Override
+                    public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
+                        System.out.println("Customer has been refund");
+                        return RepeatStatus.FINISHED;
+                    }
+                }, transactionManager)
                 .build();
     }
 }

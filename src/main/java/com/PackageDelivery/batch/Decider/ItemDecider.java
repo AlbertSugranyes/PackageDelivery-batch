@@ -1,17 +1,19 @@
-package com.PackageDelivery.batch;
+package com.PackageDelivery.batch.Decider;
 
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.job.flow.FlowExecutionStatus;
 import org.springframework.batch.core.job.flow.JobExecutionDecider;
 
-import java.time.LocalDateTime;
+import java.util.Random;
 
-public class DeliveryDecider implements JobExecutionDecider {
+public class ItemDecider implements JobExecutionDecider {
     @Override
     public FlowExecutionStatus decide(JobExecution jobExecution, StepExecution stepExecution) {
-        String result = LocalDateTime.now().getHour() < 12 ? "PRESENT":"NOT PRESENT";
-        System.out.println("Decider result is: " + result);
+        Random rand = new Random();
+        String result = rand.nextDouble() < 0.7 ? "CORRECT":"INCORRECT";
+        System.out.println("Item is " + result);
         return new FlowExecutionStatus(result);
     }
+
 }
